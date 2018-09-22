@@ -2,11 +2,11 @@
 
 if (!require(igraph)) {install.packages("igraph")};  library(igraph)
 
-if (!require(qgraph)) {install.packages("qgraph")};  library(qgraph)
+# if (!require(qgraph)) {install.packages("qgraph")};  library(qgraph)
 
 if (!require(ggraph)) {install.packages("ggraph")};  library(ggraph)
 
-if (!require(sna)) {install.packages("sna")};  library(sna)
+# if (!require(sna)) {install.packages("sna")};  library(sna)
 
 if (!require(tidyverse)) {install.packages("tidyverse")};  library(tidyverse)
 
