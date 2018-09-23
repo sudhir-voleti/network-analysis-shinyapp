@@ -75,6 +75,7 @@ output$graph1 = renderPlot({
   E(graph)$weight <- count.multiple(graph)
   
   egam = (log(E(graph)$weight)+.3)/max(log(E(graph)$weight)+.3)
+    a0 = ((egam < 0 | egam >1)); egam[a0] = 0.5   # added later coz this parm was causing error
   E(graph)$color = rgb(.5,.5,0,egam)
   
   par(mai=c(0,0,0,0))   		#this specifies the size of the margins. the default settings leave too much free space on all sides (if no axes are printed)
