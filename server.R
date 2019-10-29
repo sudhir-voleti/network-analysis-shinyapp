@@ -18,8 +18,8 @@ Dataset2 <- reactive({
   if (is.null(input$file1)) { return(NULL) }
   else{
     Dataset <- read.csv(input$file1$datapath ,header=TRUE, sep = ",")
-    row.names(Dataset) = Dataset[,1]
-    Dataset = Dataset[,2:ncol(Dataset)]
+    #row.names(Dataset) = Dataset[,1]
+    #Dataset = Dataset[,2:ncol(Dataset)]
     return(Dataset)
   }
 })
@@ -30,26 +30,26 @@ output$yvarselect <- renderUI({
   else{
   
   selectInput("colattr", "Select Color variable",
-              colnames(Dataset2()), colnames(Dataset2())[1])
+              colnames(Dataset2()[-1]), colnames(Dataset2())[1])
   }
 })
 
 graph = reactive({
   graph <- graph.adjacency(Dataset(), mode = input$mode, weighted=NULL)
   graph = simplify(graph)  
-  # col.names <- make.names(V(graph)$name, unique = TRUE)
+  col.names <- make.names(V(graph)$name, unique = TRUE)
   
   return(graph)
 })
 
 wc = reactive({
-  wc = walktrap.community(graph())
+  wc = cluster_walktrap(graph())
 })
 
 centralities = reactive({
   graph = graph()
-  metrics <- data.frame(Resp.Name = make.names(V(graph)$name, unique = TRUE),Community = wc()$membership,Degree=degree(graph), Out.Degree =degree(graph, v=V(graph), mode=c("out")),In.Degree =degree(graph, v=V(graph), mode=c("in")),
-                        Betweenness=betweenness(graph), Closeness = closeness(graph), Eigenvector.Centrality.Scores = evcent(graph)$vector, Graph.Coreness = graph.coreness(graph))
+  metrics <- data.frame(Resp.Name = make.names(V(graph)$name, unique = TRUE),Community = wc()$membership,Degree=igraph::degree(graph), Out.Degree =igraph::degree(graph, v=V(graph), mode=c("out")),In.Degree =igraph::degree(graph, v=V(graph), mode=c("in")),
+                        Betweenness=igraph::betweenness(graph), Closeness = igraph::closeness(graph), Eigenvector.Centrality.Scores = eigen_centrality(graph)$vector, Graph.Coreness = igraph::graph.coreness(graph))
   # row.names(metrics) = V(graph)$name
   
   metrics = metrics[(order(metrics[,1],metrics[,2],metrics[,3],metrics[,4],metrics[,5],metrics[,6],metrics[,7], decreasing= T)),]
@@ -105,9 +105,9 @@ output$graph2 = renderPlot({
           # vertex.color= colattr,
           vertex.label.color='black',		#the color of the name labels
           vertex.label.font=1,    			#the font of the name labels
-          vertex.size = input$cex2,     # size of the vertex
-          vertex.label= make.names(V(graph())$name, unique = TRUE),	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
-          vertex.label.cex= input$cex		#specifies the size of the font of the labels. can also be made to vary
+          vertex.size = (input$cex)/10,     # size of the vertex
+          vertex.label= make.names(V(graph())$name, unique = TRUE)	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
+         # vertex.label.cex= input$cex		#specifies the size of the font of the labels. can also be made to vary
           
     ) 
   }
@@ -154,9 +154,9 @@ for (i in 1:max_plots) {
             #vertex.color= colattr,
             vertex.label.color='black',		#the color of the name labels
             vertex.label.font=1,    			#the font of the name labels
-            vertex.size = input$cex2,     # size of the vertex
-            vertex.label= make.names(V(graph)$name, unique = TRUE),	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
-            vertex.label.cex=(degree(graph)+1)/mean(degree(graph)) * input$cex		#specifies the size of the font of the labels. can also be made to vary
+            #vertex.size = input$cex2,     # size of the vertex
+            vertex.label= make.names(V(graph)$name, unique = TRUE)    	#specifies the lables of the vertices. in this case the 'name' attribute is used
+            #vertex.label.cex=(degree(graph)+1)/mean(degree(graph)) * input$cex		#specifies the size of the font of the labels. can also be made to vary
 
       )
 
@@ -167,6 +167,72 @@ for (i in 1:max_plots) {
       })
   })
 }
+
+
+output$int_net <- renderVisNetwork({
+  if (is.null(input$file)) { return(NULL) }
+  #if (is.null(input$file1)) { return(NULL) }
+  adj_mat<-Dataset()
+  demo_data <- Dataset2()
+  G <- graph.adjacency(adj_mat,weighted = T,mode = input$mode)
+  G<-simplify(G)
+  G_vis <- toVisNetworkData(G)
+  #- create nodes and edge df---#
+  nodes <- data.frame(id = G_vis$nodes$id)
+  edges <- data.frame(from = G_vis$edges$from, to = G_vis$edges$to)
+  
+  #-----setting nodes property----#
+  degree_value<-igraph::degree(G, mode = "in")
+  between_value <- igraph::betweenness(G)
+  closeness_value <- igraph::closeness(G)
+  nodes$size <- case_when(input$cex2=="Degree" ~ degree_value[match(nodes$id, names(degree_value))],
+                          input$cex2=="Betweeness" ~ between_value[match(nodes$id, names(between_value))],
+                          input$cex2=="Closeness" ~closeness_value[match(nodes$id, names(closeness_value))]
+                          )
+  nodes$size<- round((nodes$size/max(nodes$size))*input$cex,digits = 0)
+  #colms<-colnames(demo_data)
+  if (!is.null(input$file1)) { nodes$title <- do.call(paste, c(demo_data[,], sep = "<br>"))
+                                              # paste("Name", demo_data[,1], "<br>",
+                                              #      "Gender:", demo_data[,2], "<br>",
+                                              #      "Yrs of Exp:", demo_data[,3],"<br>",
+                                              #      "Native_Language:",demo_data[,4],"<br>")
+                               nodes$group = demo_data[,which(colnames(demo_data) %in% input$colattr)]
+
+  }
+ # nodes$font.size <-input$cex
+  
+  
+  #-------------------------------#
+  
+  
+  visNetwork(nodes,edges)%>%
+    visIgraphLayout('layout.fruchterman.reingold')%>%
+    visOptions(highlightNearest = list(enabled = T, hover = T), nodesIdSelection = T,selectedBy = 'group')
+
+})
+
+output$comm_plot <- renderVisNetwork({
+  G<-graph()
+  wc<-wc()
+  demo_data<- Dataset2()
+  V(G)$community <- wc$membership
+  nodes <- data.frame(id = V(G)$name, title = V(G)$name, group = V(G)$community)
+  nodes <- nodes[order(nodes$id, decreasing = F),]
+  if (!is.null(input$file1)) { nodes$title <- do.call(paste, c(demo_data[,], sep = "<br>"))
+                              # paste("Name", demo_data[,1], "<br>",
+                              #      "Gender:", demo_data[,2], "<br>",
+                              #      "Yrs of Exp:", demo_data[,3],"<br>",
+                              #      "Native_Language:",demo_data[,4],"<br>")
+                              }
+  
+  edges <- get.data.frame(G, what="edges")[1:2]
+  visNetwork(nodes, edges) %>%
+    visIgraphLayout('layout.fruchterman.reingold')%>%
+    visOptions( highlightNearest = TRUE, nodesIdSelection = FALSE,selectedBy = list(variable="group",multiple=TRUE))
+  
+})
+
+
 
 output$downloadData1 <- downloadHandler(
   filename = function() { "Centralities.csv" },
