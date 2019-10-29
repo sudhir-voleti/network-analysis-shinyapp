@@ -58,6 +58,8 @@ centralities = reactive({
 })
 
 output$centdata = renderDataTable({
+  if (is.null(input$file)) { return(NULL) }
+  
   centralities()
 }, options = list(lengthMenu = c(5, 30, 50), pageLength = 30))
   
@@ -227,7 +229,7 @@ output$comm_plot <- renderVisNetwork({
   
   edges <- get.data.frame(G, what="edges")[1:2]
   visNetwork(nodes, edges) %>%
-    visIgraphLayout('layout.fruchterman.reingold')%>%
+    visIgraphLayout('lay vout.fruchterman.reingold')%>%
     visOptions( highlightNearest = TRUE, nodesIdSelection = FALSE,selectedBy = list(variable="group",multiple=TRUE))
   
 })
@@ -241,7 +243,23 @@ output$downloadData1 <- downloadHandler(
   }
 )
 
+output$downloadData <- downloadHandler(
+  filename = function() { "adj.csv" },
+  content = function(file) {
+    write.csv(read.csv("data/adj.csv"), file, row.names=F, col.names=F)
+  }
+)
+
+output$downloadData2 <- downloadHandler(
+  filename = function() { "demo.csv" },
+  content = function(file) {
+    write.csv(read.csv("data/demo.csv"), file, row.names=F, col.names=F)
+  }
+)
+
 })
+
+
 
 #input = list(file = list(datapath = 'C:\\Users\\30773\\Desktop\\MKTR 2017\\friendship network adj mat mktr 2017.csv'),
 #mode = 'directed')
