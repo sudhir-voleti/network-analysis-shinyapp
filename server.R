@@ -206,10 +206,17 @@ output$int_net <- renderVisNetwork({
   
   #-------------------------------#
   
-  
-  visNetwork(nodes,edges)%>%
-    visIgraphLayout('layout.fruchterman.reingold')%>%
-    visOptions(highlightNearest = list(enabled = T, hover = T), nodesIdSelection = T,selectedBy = 'group')
+  if(input$mode=='directed'){
+    visNetwork(nodes,edges)%>%
+      visIgraphLayout('layout.fruchterman.reingold')%>%
+      visOptions(highlightNearest = list(enabled = T, hover = T), nodesIdSelection = T,selectedBy = 'group')%>%
+    visEdges(arrows = 'from', scaling = list(min = 2, max = 2))
+  }else{ 
+    visNetwork(nodes,edges)%>%
+      visIgraphLayout('layout.fruchterman.reingold')%>%
+      visOptions(highlightNearest = list(enabled = T, hover = T), nodesIdSelection = T,selectedBy = 'group')
+  }
+ 
 
 })
 
