@@ -8,7 +8,7 @@ shinyServer(function(input, output,session) {
 Dataset <- reactive({
   if (is.null(input$file)) { return(NULL) }
   else{
-    Dataset <- read.csv(input$file$datapath ,header=TRUE, sep = ",")
+    Dataset <- read.csv(input$file$datapath ,header=TRUE, sep = ",",stringsAsFactors = FALSE)
     rownames(Dataset) <- make.names(Dataset[,1], unique=TRUE)
     colnames(Dataset) <- make.names(colnames(Dataset),unique=TRUE)
    # rownames(Dataset) <- gsub("[[:punct:]]", "", rownames(Dataset))
@@ -22,8 +22,16 @@ Dataset <- reactive({
 Dataset2 <- reactive({
   if (is.null(input$file1)) { return(NULL) }
   else{
-    Dataset <- read.csv(input$file1$datapath ,header=TRUE, sep = ",")
+    Dataset <- read.csv(input$file1$datapath ,header=TRUE, sep = ",",stringsAsFactors = FALSE)
     colnames(Dataset) <- make.names(colnames(Dataset),unique=TRUE)
+    #normalize categorical data
+    for(cn in colnames(Dataset[,-1])) {
+      Dataset[,cn] = apply(Dataset[,cn,drop=F],2, function(x)  tolower(x))
+      Dataset[,cn] = apply(Dataset[,cn,drop=F],2 ,function(x) trimws(x))
+      Dataset[cn] <- lapply(Dataset[cn], factor) 
+      
+    }
+    # 
     #colnames(Dataset) <- gsub("[[:punct:]]", "", colnames(Dataset))
     #row.names(Dataset) = Dataset[,1]
     #Dataset = Dataset[,2:ncol(Dataset)]
@@ -80,8 +88,19 @@ output$graph1 = renderPlot({
       colattr   = 'lightskyblue'
     }
     
-    
+  
   graph <- graph()
+  
+  for(cn in colnames(Dataset2()[,-1])) {
+    #print(cn)
+    graph = set_vertex_attr(graph, cn,  1:nrow(Dataset2()), value=Dataset2()[,cn])
+  }
+  
+  n <- length(unique(Dataset2()[,input$colattr]))
+  palette <- distinctColorPalette(n)
+  
+  print(n)
+  
   node_size <- case_when(input$cex2=="Degree" ~ degree(graph),
                             input$cex2=="Betweeness" ~ sqrt(betweenness(graph))+1,
                             input$cex2=="Closeness" ~ closeness(graph))
@@ -94,18 +113,23 @@ output$graph1 = renderPlot({
   a0 = ((egam < 0 | egam >1)); egam[a0] = 0.5   # added later coz this parm was causing error
   E(graph)$color = rgb(.5,.5,0,egam)
   
+  
+  
+  
+  
   par(mai=c(0,0,0,0))   		#this specifies the size of the margins. the default settings leave too much free space on all sides (if no axes are printed)
   plot( graph,			#the graph to be plotted
         layout=layout.fruchterman.reingold,	# the layout method. see the igraph documentation for details
         vertex.frame.color='lightskyblue', 		#the color of the border of the dots 
-        vertex.color= colattr,
+        vertex.color= palette,
         vertex.label.color='black',		#the color of the name labels
         vertex.label.font=1,    			#the font of the name labels
         vertex.size = 5,#(node_size)/input$cex,     # size of the vertex
         vertex.label= make.names(V(graph)$name, unique = TRUE),	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
         vertex.label.cex=(node_size+1)/mean(node_size)*(input$cex)/50		#specifies the size of the font of the labels. can also be made to vary
-
+      
   ) 
+  legend("topright", legend=levels(Dataset2()[,input$colattr]),horiz = FALSE,bty = "n", pch=19 ,  text.col=palette )
   }
 })
 
@@ -286,7 +310,10 @@ output$com_net = renderPlot({
   com_graph <- graph.data.frame(as.matrix(com_el), directed = FALSE)
   com_graph <- igraph::simplify(com_graph)
   E(com_graph)$weight=as.numeric(com_el[,3]) 
-  plot(com_graph,
+  
+  cut.off <- mean(E(com_graph)$weight) 
+  com_graph_1<-delete.edges(com_graph, which(E(com_graph)$weight<=cut.off))
+  plot(com_graph_1,
        layout=layout.fruchterman.reingold,
        edge.width=E(com_graph)$weight/2,
        vertex.size = (input$cex)/5)
