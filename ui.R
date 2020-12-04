@@ -9,12 +9,14 @@ library('dplyr')
 library("tidyverse")
 #library("foreign")
 
-shinyUI(pageWithSidebar(
-  # Header:
-  headerPanel("Network App"),
+fluidPage(
+  
+   # Header:
+  #titlePanel(title="Network"),
+  titlePanel(title=div(img(src="logo.png",align='right'),"Network App")),
+  
   # Input in sidepanel:
   sidebarPanel(
-
     h5(p("Data Input")),
     fileInput("file", "Upload Adjacency Matrix (csv file with header))"),
     fileInput("file1", "Upload Demographics data (csv file with header))"),
@@ -25,7 +27,9 @@ shinyUI(pageWithSidebar(
     selectInput("cex2", "Vertex Size based on", c("Degree","Betweeness","Closeness"),"Degree"),
     sliderInput("cex", "Increase vertex size by", min = 20,  max = 100, value = 50,round = FALSE),
     
-    br()
+    br(),
+    h5(p("Powered By:")),
+    img(src = "logo.png")
   ),
   # Main:
   mainPanel( 
@@ -85,4 +89,4 @@ shinyUI(pageWithSidebar(
                 )
             ) 
         ) 
-    )
+    
