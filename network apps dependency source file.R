@@ -14,3 +14,5 @@ if (!require(shiny)) {install.packages("shiny")};  library(shiny)
 
 if (!require(visNetwork)) {install.packages("visNetwork")};  library(visNetwork)
 
+if (!require(randomcoloR)) {install.packages("randomcoloR")};  library(randomcoloR)
+
