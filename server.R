@@ -10,11 +10,16 @@ Dataset <- reactive({
   else{
     Dataset <- read.csv(input$file$datapath ,header=TRUE, sep = ",",stringsAsFactors = FALSE)
     rownames(Dataset) <- make.names(Dataset[,1], unique=TRUE)
+
     colnames(Dataset) <- make.names(colnames(Dataset),unique=TRUE)
+    #colnames(Dataset)<- str_replace_all(colnames(Dataset),pattern = "\\.","_")
+    
    # rownames(Dataset) <- gsub("[[:punct:]]", "", rownames(Dataset))
     #colnames(Dataset) <- gsub("[[:punct:]]", "", colnames(Dataset))
     #row.names(Dataset) = Dataset[,1]
     Dataset = as.matrix(Dataset[,2:ncol(Dataset)])
+    
+    
     return(Dataset)
   }
 })
@@ -86,51 +91,61 @@ output$graph1 = renderPlot({
     
     if (is.null(input$file1)) {
       colattr   = 'lightskyblue'
+      
+      graph = graph()
+      
+      E(graph)$weight <- count.multiple(graph)
+      
+      egam = (log(E(graph)$weight)+.3)/max(log(E(graph)$weight)+.3)
+      a0 = ((egam < 0 | egam >1)); egam[a0] = 0.5   # added later coz this parm was causing error
+      E(graph)$color = rgb(.5,.5,0,egam)
+      
+      par(mai=c(0,0,0,0))   		#this specifies the size of the margins. the default settings leave too much free space on all sides (if no axes are printed)
+      plot( graph,			#the graph to be plotted
+            layout=layout.fruchterman.reingold,	# the layout method. see the igraph documentation for details
+            vertex.frame.color='lightskyblue', 		#the color of the border of the dots 
+            vertex.color= colattr,
+            vertex.label.color='black',		#the color of the name labels
+            vertex.label.font=1,    			#the font of the name labels
+            vertex.size = (input$cex)/10,     # size of the vertex
+            vertex.label= make.names(V(graph)$name, unique = TRUE),	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
+            vertex.label.cex=(degree(graph)+1)/mean(degree(graph)) * (input$cex/50)		#specifies the size of the font of the labels. can also be made to vary
+            
+      ) 
+      
+    }else{
+      graph <- graph()
+      for(cn in colnames(Dataset2()[,-1])) {
+        #print(cn)
+        graph = set_vertex_attr(graph, cn,  1:nrow(Dataset2()), value=Dataset2()[,cn])
+        n <- length(unique(Dataset2()[,input$colattr]))
+        palette <- randomcoloR::distinctColorPalette(n)
+        print(n)
+        
+        node_size <- case_when(input$cex2=="Degree" ~ degree(graph),
+                               input$cex2=="Betweeness" ~ sqrt(betweenness(graph))+1,
+                               input$cex2=="Closeness" ~ closeness(graph))
+        E(graph)$weight <- count.multiple(graph)
+        egam = (log(E(graph)$weight)+.3)/max(log(E(graph)$weight)+.3)
+        a0 = ((egam < 0 | egam >1)); egam[a0] = 0.5   # added later coz this parm was causing error
+        E(graph)$color = rgb(.5,.5,0,egam)
+        par(mai=c(0,0,0,0))   		#this specifies the size of the margins. the default settings leave too much free space on all sides (if no axes are printed)
+        plot( graph,			#the graph to be plotted
+              layout=layout.fruchterman.reingold,	# the layout method. see the igraph documentation for details
+              vertex.frame.color='lightskyblue', 		#the color of the border of the dots 
+              vertex.color= palette,
+              vertex.label.color='black',		#the color of the name labels
+              vertex.label.font=1,    			#the font of the name labels
+              vertex.size = 5,#(node_size)/input$cex,     # size of the vertex
+              vertex.label= make.names(V(graph)$name, unique = TRUE),	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
+              vertex.label.cex=(node_size+1)/mean(node_size)*(input$cex)/50		#specifies the size of the font of the labels. can also be made to vary
+             )
+        legend("topright", legend=levels(Dataset2()[,input$colattr]),horiz = FALSE,bty = "n", pch=19 ,  text.col=palette )
+        
+      }
+     }
     }
     
-  
-  graph <- graph()
-  
-  for(cn in colnames(Dataset2()[,-1])) {
-    #print(cn)
-    graph = set_vertex_attr(graph, cn,  1:nrow(Dataset2()), value=Dataset2()[,cn])
-  }
-  
-  n <- length(unique(Dataset2()[,input$colattr]))
-  palette <- distinctColorPalette(n)
-  
-  print(n)
-  
-  node_size <- case_when(input$cex2=="Degree" ~ degree(graph),
-                            input$cex2=="Betweeness" ~ sqrt(betweenness(graph))+1,
-                            input$cex2=="Closeness" ~ closeness(graph))
-    
-  
-  
-  E(graph)$weight <- count.multiple(graph)
-  
-  egam = (log(E(graph)$weight)+.3)/max(log(E(graph)$weight)+.3)
-  a0 = ((egam < 0 | egam >1)); egam[a0] = 0.5   # added later coz this parm was causing error
-  E(graph)$color = rgb(.5,.5,0,egam)
-  
-  
-  
-  
-  
-  par(mai=c(0,0,0,0))   		#this specifies the size of the margins. the default settings leave too much free space on all sides (if no axes are printed)
-  plot( graph,			#the graph to be plotted
-        layout=layout.fruchterman.reingold,	# the layout method. see the igraph documentation for details
-        vertex.frame.color='lightskyblue', 		#the color of the border of the dots 
-        vertex.color= palette,
-        vertex.label.color='black',		#the color of the name labels
-        vertex.label.font=1,    			#the font of the name labels
-        vertex.size = 5,#(node_size)/input$cex,     # size of the vertex
-        vertex.label= make.names(V(graph)$name, unique = TRUE),	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
-        vertex.label.cex=(node_size+1)/mean(node_size)*(input$cex)/50		#specifies the size of the font of the labels. can also be made to vary
-      
-  ) 
-  legend("topright", legend=levels(Dataset2()[,input$colattr]),horiz = FALSE,bty = "n", pch=19 ,  text.col=palette )
-  }
 })
 
 output$graph2 = renderPlot({
@@ -317,10 +332,27 @@ output$com_net = renderPlot({
        layout=layout.fruchterman.reingold,
        edge.width=E(com_graph)$weight/2,
        vertex.size = (input$cex)/5)
-  
-  
-  
+
 })
+
+com_cent = reactive({
+  com_el <- network_structure(centralities(),Dataset())
+  com_el_1 <- com_el[com_el[,3]!=0,]
+  com_graph <- graph_from_data_frame(com_el_1)
+  metrics <- data.frame(Community.Name = make.names(V(com_graph)$name, unique = TRUE),Degree=igraph::degree(com_graph), Out.Degree =igraph::degree(com_graph, v=V(com_graph), mode=c("out")),In.Degree =igraph::degree(com_graph, v=V(com_graph), mode=c("in")),
+                        Betweenness=igraph::betweenness(com_graph), Closeness = igraph::closeness(com_graph), Eigenvector.Centrality.Scores = eigen_centrality(com_graph)$vector, Graph.Coreness = igraph::graph.coreness(com_graph))
+  # row.names(metrics) = V(graph)$name
+  
+  metrics = metrics[(order(metrics[,1],metrics[,2],metrics[,3],metrics[,4],metrics[,5],metrics[,6],metrics[,7], decreasing= T)),]
+  
+  return(metrics)
+})
+
+output$com_cent = renderDataTable({
+  if (is.null(input$file)) { return(NULL) }
+  
+  com_cent()
+}, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
 
 })
 
