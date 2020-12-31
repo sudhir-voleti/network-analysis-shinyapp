@@ -7,6 +7,8 @@ library("igraph")
 library('visNetwork')
 library('dplyr')
 library("tidyverse")
+library('randomcoloR')
+library("stringr")
 #library("foreign")
 
 fluidPage(
@@ -27,7 +29,9 @@ fluidPage(
     selectInput("cex2", "Vertex Size based on", c("Degree","Betweeness","Closeness"),"Degree"),
     sliderInput("cex", "Increase vertex size by", min = 20,  max = 100, value = 50,round = FALSE),
     
-    
+    br(),
+    h5(p("Powered By:")),
+    img(src = "logo.png")
   ),
   # Main:
   mainPanel( 
@@ -83,7 +87,7 @@ fluidPage(
                 tabPanel("Network Centralities",br(),
                          downloadButton('downloadData1', 'Download Centralities file (Works only in browser)'), br(),br(),
                          dataTableOutput("centdata")),
-                tabPanel("Network Structure",plotOutput("com_net",height = 800, width = 840))
+                tabPanel("Network Structure",plotOutput("com_net",height = 800, width = 840),dataTableOutput('com_cent'))
                 )
             ) 
         ) 
