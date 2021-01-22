@@ -59,7 +59,7 @@ network_structure <- function(centralities,adj_mat){
       final_df <- rbind(final_df,temp2) 
       
     }
-    t <- final_df %>% group_by(Community)%>%summarise(n())
+    t <- final_df %>% group_by(Community)%>%summarise(dplyr::n())
     #print(t)
     
     temp_df2 <- left_join(community_el_base,t,by="Community")

@@ -19,9 +19,9 @@ fluidPage(
   
   # Input in sidepanel:
   sidebarPanel(
-    h5(p("Data Input")),
-    fileInput("file", "Upload Adjacency Matrix (csv file with header))"),
-    fileInput("file1", "Upload Demographics data (csv file with header))"),
+    h4(p("Data Input")),
+    fileInput("file", "Upload Adjacency Matrix (csv file with header)"),
+    fileInput("file1", "Upload Demographics data (csv file with header)"),
     selectInput("mode","Mode of Graph",c("directed", "undirected","max", "min", "upper",
                                          "lower", "plus"),"undirected"),
     # selectInput("comm","Find Communities",c("Yes", "No"),"No"),
@@ -30,8 +30,8 @@ fluidPage(
     sliderInput("cex", "Increase vertex size by", min = 20,  max = 100, value = 50,round = FALSE),
     
     br(),
-    h5(p("Powered By:")),
-    img(src = "logo.png")
+   # h5(p("Powered By:")),
+    #img(src = "logo.png")
   ),
   # Main:
   mainPanel( 
