@@ -297,7 +297,7 @@ output$comm_plot <- renderVisNetwork({
 
 
 output$downloadData1 <- downloadHandler(
-  filename = function() { "Centralities.csv" },
+  filename = function() { paste(str_split(input$file$name,"\\.")[[1]][1],"_centralities.csv",collapse = "") },
   content = function(file) {
     write.csv(centralities(), file, row.names=F)
   }
@@ -327,6 +327,7 @@ output$com_net = renderPlot({
   E(com_graph)$weight=as.numeric(com_el[,3]) 
   
   cut.off <- mean(E(com_graph)$weight) 
+  print(cut.off)
   com_graph_1<-delete.edges(com_graph, which(E(com_graph)$weight<=cut.off))
   plot(com_graph_1,
        layout=layout.fruchterman.reingold,
