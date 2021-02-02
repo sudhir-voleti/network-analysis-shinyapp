@@ -80,14 +80,14 @@ fluidPage(
                          plotOutput("graph1", height = 800, width = 840),
                          visNetworkOutput('int_net',width = '800px',height = '600px')),
                 #tabPanel("Network Plot",plotOutput("graph1", height = 800, width = 840)),
-                tabPanel("Communities Plot",plotOutput("graph2", height = 800, width = 840),uiOutput("graph3")),
+                tabPanel("Communities Plot",visNetworkOutput("graph2", height = 800, width = 840),uiOutput("graph3")),
                 #visNetworkOutput('comm_plot')),
                 #plotOutput("graph2", height = 800, width = 840),
                 #uiOutput("graph3")), #, height = 800, width = 840
                 tabPanel("Network Centralities",br(),
                          downloadButton('downloadData1', 'Download Centralities file (Works only in browser)'), br(),br(),
                          dataTableOutput("centdata")),
-                tabPanel("Network Structure",plotOutput("com_net",height = 800, width = 840),dataTableOutput('com_cent'))
+                tabPanel("Network Structure",visNetworkOutput("com_net",height = 800, width = 840),dataTableOutput('com_cent'))
                 )
             ) 
         ) 
