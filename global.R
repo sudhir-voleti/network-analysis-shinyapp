@@ -12,6 +12,8 @@ max_plots = 30
 # }
 
 
+# centralities <- read.csv("D://pgp 21 survey//network an data//Centralities (1).csv")
+# adj_mat <- read.csv("D://pgp 21 survey//network an data//friendship_net_adj_mat_co21.csv")
 
 #--------------code for network structure tab -----------------------#
 
@@ -36,17 +38,15 @@ network_structure <- function(centralities,adj_mat){
   community_el_base <- data.frame(Community=communities)
   community_el_base$temp <- rep(0,nrow(community_el_base))
   
-  
   for (i in communities){
     filtered_community <- centralities %>% filter(Community==i) #filter all the members of community i
     filtered_community_mat <- adj_mat[rownames(adj_mat) %in% filtered_community$Resp.Name,] # filter adjacency matrix of 
     final_df <- data.frame() #empty dataframe to store all results
     
     print(i)
-    
     for(j in 1:nrow(filtered_community)){
       resp <- filtered_community$Resp.Name[j] 
-      
+      print(resp)
       respondent_network <- data.frame(adj_mat[rownames(adj_mat)==resp,])
       
       # respondent_network_T <- data.frame(t(respondent_network))
@@ -59,7 +59,7 @@ network_structure <- function(centralities,adj_mat){
       final_df <- rbind(final_df,temp2) 
       
     }
-    t <- final_df %>% group_by(Community)%>%summarise(dplyr::n())
+    t <- final_df %>% group_by(Community)%>%summarise(n())
     #print(t)
     
     temp_df2 <- left_join(community_el_base,t,by="Community")
@@ -83,4 +83,14 @@ network_structure <- function(centralities,adj_mat){
   
   
 }
+
+
+put_title <- function(df0){
+  colnames0 = colnames(df0)
+  a01 = data.frame(title0=character())
+  for (i1 in 1:nrow(df0)){
+    a0 = NULL
+    for (i0 in 1:ncol(df0)){ a0 = c(a0, paste0(colnames0[i0], ": ", df0[i1, i0], "<br>")) }
+    a01[i1, 1] = str_c(a0, collapse="") }
+  return(a01)}
 
