@@ -17,3 +17,5 @@ if (!require(visNetwork)) {install.packages("visNetwork")};  library(visNetwork)
 if (!require(randomcoloR)) {install.packages("randomcoloR")};  library(randomcoloR)
 
 if (!require(stringr)) {install.packages("stringr")};  library(stringr)
+
+if (!require(visNetwork)) {install.packages("visNetwork")};  library(visNetwork)
