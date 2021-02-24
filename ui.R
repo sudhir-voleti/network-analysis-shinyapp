@@ -80,7 +80,7 @@ fluidPage(
                          plotOutput("graph1", height = 800, width = 840),
                          visNetworkOutput('int_net',width = '800px',height = '600px')),
                 #tabPanel("Network Plot",plotOutput("graph1", height = 800, width = 840)),
-                tabPanel("Communities Plot",visNetworkOutput("graph2", height = 800, width = 840),uiOutput("graph3")),
+                tabPanel("Communities Plot",plotOutput("graph2", height = 800, width = 840),uiOutput("graph3"),helpText("Note: Seperate plot for community with size = 1 won't be shown")),
                 #visNetworkOutput('comm_plot')),
                 #plotOutput("graph2", height = 800, width = 840),
                 #uiOutput("graph3")), #, height = 800, width = 840
