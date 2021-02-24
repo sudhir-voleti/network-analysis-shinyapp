@@ -80,7 +80,8 @@ centralities = reactive({
 output$centdata = renderDataTable({
   if (is.null(input$file)) { return(NULL) }
   
-  centralities()
+  centralities() %>% mutate_if(is.numeric, round, digits=3)
+  
 }, options = list(lengthMenu = c(5, 30, 50), pageLength = 30))
   
 output$graph1 = renderPlot({
@@ -148,56 +149,24 @@ output$graph1 = renderPlot({
     
 })
 
-output$graph2 = renderVisNetwork({
-  if (is.null(input$file1)) { 
-    
-    wc = wc()
-    test.gr <- graph_from_adjacency_matrix(Dataset(), mode="directed", weighted=T)
-    test.visn <- toVisNetworkData(test.gr)  # convert to VisNetwork-list
-    test.visn$edges$value <- test.visn$edges$weight  # copy "weight" to new colm "value" in list "edges"
-    # -- incorp community as grouping variable
-    degree = igraph::degree(test.gr)
-    
-    test.visn$nodes = data.frame(test.visn$nodes, group=wc$membership, value=degree)#, title=a01()$title0)
-    head(test.visn$nodes)
-    
-    # Visualize data with visNetwork
-    visNetwork(test.visn$nodes, test.visn$edges) %>%
-      visLayout(randomSeed = 123) # to always have the same network 
-    
-    }
- 
-  else {
-    #par(mai=c(0,0,0,0))   		#this specifies the size of the margins. the default settings leave too much free space on all sides (if no axes are printed)
-    # plot(wc(),
-    #       graph(),			#the graph to be plotted
-    #       layout=layout.fruchterman.reingold,	# the layout method. see the igraph documentation for details
-    #       # vertex.frame.color='lightskyblue', 		#the color of the border of the dots
-    #       # vertex.color= colattr,
-    #       vertex.label.color='black',		#the color of the name labels
-    #       vertex.label.font=1,    			#the font of the name labels
-    #       vertex.size = (input$cex)/10,     # size of the vertex
-    #       vertex.label= make.names(V(graph())$name, unique = TRUE)	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
-    #      # vertex.label.cex= input$cex		#specifies the size of the font of the labels. can also be made to vary
-    #       
-    # ) 
-    
-    wc = wc()
-    test.gr <- graph_from_adjacency_matrix(Dataset(), mode="directed", weighted=T)
-    test.visn <- toVisNetworkData(test.gr)  # convert to VisNetwork-list
-    test.visn$edges$value <- test.visn$edges$weight  # copy "weight" to new colm "value" in list "edges"
-    # -- incorp community as grouping variable
-    degree = igraph::degree(test.gr)
-    
-    test.visn$nodes = data.frame(test.visn$nodes, group=wc$membership, value=degree, title=a01()$title0)
-    head(test.visn$nodes)
-    
-    # Visualize data with visNetwork
-    visNetwork(test.visn$nodes, test.visn$edges) %>%
-      visLayout(randomSeed = 123) # to always have the same network 
-    
-  }
+output$graph2 = renderPlot({
+  if (is.null(input$file)) { return(NULL) }
   
+  else {
+    par(mai=c(0,0,0,0))   		#this specifies the size of the margins. the default settings leave too much free space on all sides (if no axes are printed)
+    plot(wc(),
+         graph(),			#the graph to be plotted
+         layout=layout.fruchterman.reingold,	# the layout method. see the igraph documentation for details
+         # vertex.frame.color='lightskyblue', 		#the color of the border of the dots
+         # vertex.color= colattr,
+         vertex.label.color='black',		#the color of the name labels
+         vertex.label.font=1,    			#the font of the name labels
+         vertex.size = (input$cex)/10,     # size of the vertex
+         vertex.label= make.names(V(graph())$name, unique = TRUE)	    	#specifies the lables of the vertices. in this case the 'name' attribute is used
+         # vertex.label.cex= input$cex		#specifies the size of the font of the labels. can also be made to vary
+         
+    ) 
+  }
 })
 
 output$graph3 <- renderUI({
@@ -237,6 +206,10 @@ for (i in 1:max_plots) {
       a01 = a01()
       
       test = adj.mat[wc$membership == my_i,wc$membership == my_i]
+      if(length(test)==1){
+        return(NULL)
+      }else{
+      
       g = graph.adjacency(test, mode=input$mode)
       g = igraph::simplify(g)
       degree = igraph::degree(g)
@@ -306,10 +279,11 @@ for (i in 1:max_plots) {
       
       
       #title(paste("Community : ",my_i), sub = paste("Population share - ",pct,"%"))
-      
+      }
       })
   })
 }
+
 
 
 output$int_net <- renderVisNetwork({
