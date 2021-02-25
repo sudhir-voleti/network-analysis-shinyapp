@@ -94,3 +94,8 @@ put_title <- function(df0){
     a01[i1, 1] = str_c(a0, collapse="") }
   return(a01)}
 
+
+min_max_scaler <- function(x){
+  x <- (x-min(x))/(max(x)-min(x))
+  return(x)
+}
