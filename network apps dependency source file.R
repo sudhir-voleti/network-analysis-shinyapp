@@ -8,7 +8,7 @@ if (!require(ggraph)) {install.packages("ggraph")};  library(ggraph)
 
 # if (!require(sna)) {install.packages("sna")};  library(sna)
 
-if (!require(tidyverse)) {install.packages("tidyverse")};  library(tidyverse)
+# if (!require(tidyverse)) {install.packages("tidyverse")};  library(tidyverse)
 
 if (!require(shiny)) {install.packages("shiny")};  library(shiny)
 
