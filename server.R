@@ -69,7 +69,10 @@ wc = reactive({
 centralities = reactive({
   graph = graph()
   metrics <- data.frame(Resp.Name = make.names(V(graph)$name, unique = TRUE),Community = wc()$membership,Degree=igraph::degree(graph), Out.Degree =igraph::degree(graph, v=V(graph), mode=c("out")),In.Degree =igraph::degree(graph, v=V(graph), mode=c("in")),
-                        Betweenness=igraph::betweenness(graph), Closeness = igraph::closeness(graph), Eigenvector.Centrality.Scores = eigen_centrality(graph)$vector, Graph.Coreness = igraph::graph.coreness(graph))
+                        Betweenness=min_max_scaler(igraph::betweenness(graph)), 
+                        Closeness = min_max_scaler(igraph::closeness(graph)),
+                        Eigenvector.Centrality.Scores = min_max_scaler(eigen_centrality(graph)$vector),
+                        Graph.Coreness = min_max_scaler(igraph::graph.coreness(graph)))
   # row.names(metrics) = V(graph)$name
   
   metrics = metrics[(order(metrics[,1],metrics[,2],metrics[,3],metrics[,4],metrics[,5],metrics[,6],metrics[,7], decreasing= T)),]
