@@ -15,6 +15,7 @@ fluidPage(
   
    # Header:
   #titlePanel(title="Network"),
+  title = "Network Analysis",
   titlePanel(title=div(img(src="logo.png",align='right'),"Network App")),
   
   # Input in sidepanel:
